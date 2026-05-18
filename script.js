@@ -86,6 +86,17 @@ function init() {
             document.getElementById('loginView').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
             
+            // Update Profile UI
+            const pName = document.getElementById('profileName');
+            const pEmail = document.getElementById('profileEmail');
+            const pAvatar = document.getElementById('profileAvatar');
+            
+            if (pName) pName.innerText = user.displayName || 'Usuario';
+            if (pEmail) pEmail.innerText = user.email || 'Usuario Premium';
+            if (pAvatar && user.photoURL) {
+                pAvatar.innerHTML = `<img src="${user.photoURL}" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+            }
+            
             // Listen to real-time updates from Firestore
             onSnapshot(doc(db, "users", user.uid), (docSnap) => {
                 if (docSnap.exists()) {
