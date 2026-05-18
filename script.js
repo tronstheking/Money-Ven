@@ -1,16 +1,40 @@
-// State
-let transactions = JSON.parse(localStorage.getItem('transactions')) || [
-    { id: 1, type: 'income', account: 'usdt', description: 'Salario Base', amount: 500, date: new Date().toISOString() },
-    { id: 2, type: 'expense', account: 'ves', description: 'Supermercado', amount: 1500, date: new Date().toISOString() },
-    { id: 3, type: 'income', account: 'usd', description: 'Venta de algo', amount: 50, date: new Date().toISOString() }
-];
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-let goals = JSON.parse(localStorage.getItem('goals')) || [
-    { id: 1, name: 'Laptop Nueva', target: 800, saved: 150 }
-];
+const firebaseConfig = {
+  apiKey: "AIzaSyAGPjWq_2XXJqDte530rOmokpMWhn0BNwI",
+  authDomain: "money-ven-ead58.firebaseapp.com",
+  projectId: "money-ven-ead58",
+  storageBucket: "money-ven-ead58.firebasestorage.app",
+  messagingSenderId: "1070846481202",
+  appId: "1:1070846481202:web:ec42682ef0881332147d2b"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+
+// State
+let transactions = [];
+let goals = [];
 
 let bcvRate = parseFloat(localStorage.getItem('bcvRate')) || null;
 let binanceRate = parseFloat(localStorage.getItem('binanceRate')) || null;
+
+async function saveToFirebase() {
+    if (!currentUser) return;
+    try {
+        await setDoc(doc(db, "users", currentUser.uid), {
+            transactions,
+            goals
+        });
+    } catch(e) {
+        console.error("Error saving to Firebase:", e);
+    }
+}
 
 // DOM Elements
 const balVesEl = document.getElementById('balVes');
@@ -56,7 +80,34 @@ const categoryColors = {
 
 // Init
 function init() {
-    checkAuth();
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUser = user;
+            document.getElementById('loginView').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            
+            // Listen to real-time updates from Firestore
+            onSnapshot(doc(db, "users", user.uid), (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    transactions = data.transactions || [];
+                    goals = data.goals || [];
+                } else {
+                    transactions = [];
+                    goals = [];
+                }
+                updateUI();
+                initCharts();
+                updateCharts();
+                setupNavigation();
+            });
+            fetchRates();
+        } else {
+            currentUser = null;
+            document.getElementById('loginView').style.display = 'flex';
+            document.getElementById('mainApp').style.display = 'none';
+        }
+    });
 
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed', err));
@@ -75,10 +126,24 @@ function init() {
         });
     }
     
-    document.getElementById('loginForm').addEventListener('submit', (e) => {
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        localStorage.setItem('isLoggedIn', 'true');
-        checkAuth();
+        const email = document.getElementById('loginEmail').value;
+        const pass = document.getElementById('loginPassword').value;
+        try {
+            await signInWithEmailAndPassword(auth, email, pass);
+        } catch(error) {
+            if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+                try {
+                    await createUserWithEmailAndPassword(auth, email, pass);
+                    showToast('Cuenta creada exitosamente', 'success');
+                } catch(err2) {
+                    showToast('Error: ' + err2.message, 'error');
+                }
+            } else {
+                showToast('Error al iniciar sesión', 'error');
+            }
+        }
     });
     
     document.getElementById('typeIncome').addEventListener('change', () => {
@@ -104,31 +169,12 @@ function init() {
     }
 }
 
-function checkAuth() {
-    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-    if (isLoggedIn) {
-        document.getElementById('loginView').style.display = 'none';
-        document.getElementById('mainApp').style.display = 'block';
-        updateUI();
-        initCharts();
-        updateCharts();
-        setupNavigation();
-        fetchRates();
-    } else {
-        document.getElementById('loginView').style.display = 'flex';
-        document.getElementById('mainApp').style.display = 'none';
-    }
-}
-
 window.logout = function() {
-    localStorage.setItem('isLoggedIn', 'false');
-    checkAuth();
+    signOut(auth);
 };
 
 window.loginWithGoogle = function() {
-    // Simular el flujo de autenticación de Google
-    localStorage.setItem('isLoggedIn', 'true');
-    checkAuth();
+    showToast('Próximamente', 'error');
 };
 
 // Fetch BCV and Binance Rates
@@ -310,14 +356,12 @@ function updateUI() {
     renderTransactions(transactionListEl, filtered.slice(0, 5)); 
     // top expenses handled in updateCharts
     renderGoals();
-
-    localStorage.setItem('transactions', JSON.stringify(transactions));
-    localStorage.setItem('goals', JSON.stringify(goals));
 }
 
 window.deleteTransaction = function(id) {
     showConfirm('¿Eliminar esta transacción de tu registro?', () => {
         transactions = transactions.filter(t => t.id !== id);
+        saveToFirebase();
         updateUI();
         updateCharts();
     });
@@ -435,6 +479,7 @@ function addTransaction(e) {
         showToast('Transacción guardada exitosamente');
     }
 
+    saveToFirebase();
     transactionForm.reset();
     document.getElementById('editTransactionId').value = "";
     document.getElementById('typeIncome').checked = true;
@@ -477,6 +522,7 @@ function renderGoals() {
 window.deleteGoal = function(id) {
     showConfirm('¿Estás seguro de que deseas eliminar este objetivo?', () => {
         goals = goals.filter(g => g.id !== id);
+        saveToFirebase();
         updateUI();
     });
 };
@@ -628,6 +674,8 @@ function addGoal(e) {
     
     if (!name || isNaN(amount) || !startDate || !endDate) return;
     goals.push({ id: Date.now(), name, emoji, target: amount, saved: 0, startDate, endDate, frequency, history: [] });
+    
+    saveToFirebase();
     goalForm.reset();
     document.getElementById('goalCalculation').style.display = 'none';
     closeModals();
@@ -720,6 +768,7 @@ function addFund(e) {
         // Deduct from global balance!
         transactions.push({ id: Date.now(), type: 'expense', account: account, description: 'Abono a ' + goal.name, amount: amount, category: 'Ahorro Meta', date: new Date().toISOString() });
         
+        saveToFirebase();
         addFundForm.reset();
         closeModals();
         updateUI();
@@ -956,8 +1005,8 @@ window.importBackup = function(event) {
             const data = JSON.parse(e.target.result);
             if (data.transactions) transactions = data.transactions;
             if (data.goals) goals = data.goals;
-            localStorage.setItem('transactions', JSON.stringify(transactions));
-            localStorage.setItem('goals', JSON.stringify(goals));
+            
+            saveToFirebase();
             updateUI();
             updateCharts();
             showToast('Respaldo restaurado con éxito', 'success');
@@ -972,8 +1021,8 @@ window.wipeData = function() {
     showConfirm('¿Estás SEGURO de querer borrar todos tus datos? Esta acción no se puede deshacer.', () => {
         transactions = [];
         goals = [];
-        localStorage.removeItem('transactions');
-        localStorage.removeItem('goals');
+        
+        saveToFirebase();
         updateUI();
         updateCharts();
         showToast('Todos los datos han sido borrados', 'success');
