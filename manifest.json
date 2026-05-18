@@ -1,0 +1,17 @@
+{
+  "name": "Money Ven",
+  "short_name": "Money Ven",
+  "description": "Dashboard de Finanzas Personales para Venezolanos",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#8b5cf6",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2830/2830284.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

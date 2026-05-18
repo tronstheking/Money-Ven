@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Money Ven</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#8b5cf6">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- ================= LOGIN VIEW ================= -->
+    <div class="app-container" id="loginView" style="display: flex; flex-direction: column; justify-content: center; padding: 2.5rem 2rem; min-height: 100vh; background: #ffffff;">
+        <div style="text-align: center; margin-bottom: 3rem;">
+            <div class="logo-icon" style="width: 72px; height: 72px; margin: 0 auto 1.5rem auto; border-radius: 20px; box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);">
+                <i class="ph-fill ph-wallet" style="color: white; font-size: 2.5rem; transform: rotate(-45deg);"></i>
+            </div>
+            <h1 style="font-size: 2.2rem; color: var(--text-dark); margin-bottom: 0.5rem; font-weight: 700; letter-spacing: -1px;">Money Ven</h1>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Controla tus finanzas al milímetro</p>
+        </div>
+        
+        <form id="loginForm" style="display: flex; flex-direction: column; gap: 1.25rem;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <div class="amount-input">
+                    <span class="currency" style="color: var(--text-muted); font-size: 1.25rem; left: 1.25rem;"><i class="ph ph-envelope-simple"></i></span>
+                    <input type="email" id="loginEmail" placeholder="Correo Electrónico" required value="demo@moneyven.com" style="background: var(--bg-main); border: 2px solid transparent; padding: 0 3.5rem; text-align: center; height: 60px; border-radius: 16px; font-weight: 500; font-size: 1rem; width: 100%;">
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <div class="amount-input">
+                    <span class="currency" style="color: var(--text-muted); font-size: 1.25rem; left: 1.25rem;"><i class="ph ph-lock-key"></i></span>
+                    <input type="password" id="loginPassword" placeholder="Contraseña" required value="123456" style="background: var(--bg-main); border: 2px solid transparent; padding: 0 3.5rem; text-align: center; height: 60px; border-radius: 16px; font-weight: 500; font-size: 1rem; width: 100%;">
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 0.5rem; margin-bottom: 1rem;">
+                <a href="#" style="color: var(--primary); text-decoration: none; font-size: 0.9rem; font-weight: 600;">¿Olvidaste tu contraseña?</a>
+            </div>
+
+            <button type="submit" class="btn-primary full-width" style="padding: 1rem; font-size: 1.1rem; border-radius: 16px; justify-content: center; height: 60px; font-weight: 600; box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);">
+                Ingresar
+            </button>
+            
+            <div style="display: flex; align-items: center; margin: 0.5rem 0;">
+                <div style="flex: 1; height: 1px; background: var(--border-color);"></div>
+                <span style="padding: 0 1rem; color: var(--text-muted); font-size: 0.85rem; font-weight: 500;">O regístrate con</span>
+                <div style="flex: 1; height: 1px; background: var(--border-color);"></div>
+            </div>
+
+            <button type="button" class="full-width" onclick="loginWithGoogle()" style="background: #ffffff; color: var(--text-dark); border: 1px solid var(--border-color); padding: 1rem; border-radius: 16px; font-weight: 600; font-family: var(--font-family); font-size: 1.05rem; display: flex; align-items: center; justify-content: center; gap: 0.75rem; cursor: pointer; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03); height: 60px;">
+                <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" style="width: 24px; height: 24px;">
+                Continuar con Google
+            </button>
+        </form>
+    </div>
+
+    <!-- ================= MAIN APP ================= -->
+    <div id="mainApp" style="display: none;">
+        <div class="app-container">
+            <!-- Dark Top Bar -->
+            <nav class="top-bar">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <div class="logo-shape"></div>
+                    </div>
+                    <span>Money Ven</span>
+                </div>
+                <div class="top-actions">
+                    <button class="icon-btn dark"><i class="ph-fill ph-sparkle"></i></button>
+                    <button class="icon-btn dark"><i class="ph ph-bell"></i></button>
+                </div>
+            </nav>
+
+            <main class="main-content">
+
+                <!-- ================= VIEW: DASHBOARD ================= -->
+                <section id="view-dashboard" class="view-section active">
+                    <header class="page-header" style="align-items: flex-start; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                            <h1>Dashboard</h1>
+                            <button class="btn-primary" onclick="openTransactionModal()">
+                                <i class="ph ph-plus"></i> Nuevo
+                            </button>
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); background: var(--bg-card); padding: 0.5rem 0.75rem; border-radius: 12px; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; width: 100%;">
+                            <div><i class="ph-fill ph-bank" style="color: var(--success);"></i> BCV: <strong id="bcvRateLabel" style="color: var(--text-dark);">Cargando...</strong></div>
+                            <div><i class="ph-fill ph-currency-circle-dollar" style="color: #f59e0b;"></i> Binance: <strong id="binanceRateLabel" style="color: var(--text-dark);">Cargando...</strong></div>
+                        </div>
+                    </header>
+
+                    <!-- Filters EXACTLY like the image -->
+                    <div class="custom-filters">
+                        <button class="filter-icon-btn"><i class="ph ph-squares-four"></i></button>
+                        <select id="accountFilter" class="filter-select">
+                            <option value="all">Todas las cuentas</option>
+                            <option value="ves">Bolívares</option>
+                            <option value="usdt">Dólares USDT</option>
+                            <option value="usd">Dólares Físicos</option>
+                        </select>
+                        <select id="monthFilter" class="filter-select">
+                            <option value="all">Todos los meses</option>
+                            <option value="current" selected>Este Mes</option>
+                            <option value="last">Mes Anterior</option>
+                        </select>
+                    </div>
+
+                    <!-- 3 Balances -->
+                    <div class="balances-grid">
+                        <div class="card balance-mini">
+                            <div class="b-header">
+                                <i class="ph ph-wallet" style="color:#7c3aed"></i>
+                                <span>Bolívares</span>
+                            </div>
+                            <h3 id="balVes">Bs 0.00</h3>
+                            <p class="eq-text" id="eqVes" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">≈ $0.00</p>
+                        </div>
+                        <div class="card balance-mini">
+                            <div class="b-header">
+                                <i class="ph ph-currency-circle-dollar" style="color:#10b981"></i>
+                                <span>USDT</span>
+                            </div>
+                            <h3 id="balUsdt">$0.00</h3>
+                            <p class="eq-text" id="eqUsdt" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">≈ Bs 0.00</p>
+                        </div>
+                        <div class="card balance-mini">
+                            <div class="b-header">
+                                <i class="ph ph-money" style="color:#f59e0b"></i>
+                                <span>Físico</span>
+                            </div>
+                            <h3 id="balUsd">$0.00</h3>
+                            <p class="eq-text" id="eqUsd" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">≈ Bs 0.00</p>
+                        </div>
+                    </div>
+
+                    <!-- Main Chart for Selected Account -->
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="ph ph-chart-donut"></i>
+                                <span id="chartTitle">Flujo de Caja</span>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper half-doughnut">
+                            <canvas id="balanceChart"></canvas>
+                            <div class="chart-center-text">
+                                <span id="transactionCount" class="count">0</span>
+                                <span class="label">Transacciones</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Transactions -->
+                    <div class="card list-card mt-3">
+                        <div class="card-header" style="flex-direction: column; align-items: stretch; gap: 1rem;">
+                            <div class="card-title">
+                                <i class="ph ph-list-dashes"></i>
+                                <span>Transacciones Recientes</span>
+                            </div>
+                            <div style="position: relative;">
+                                <i class="ph ph-magnifying-glass" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                                <input type="text" id="searchInput" placeholder="Buscar transacción..." style="width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-main); font-family: var(--font-family); outline: none;">
+                            </div>
+                        </div>
+                        <div class="transaction-list" id="transactionList">
+                            <!-- JS will inject items here -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= VIEW: ESTADÍSTICAS ================= -->
+                <section id="view-stats" class="view-section">
+                    <header class="page-header" style="margin-bottom: 1rem;">
+                        <h1>Estadísticas</h1>
+                    </header>
+                    <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 1rem; margin-top: -0.5rem;">Cifras estandarizadas a USD según tasa actual</p>
+                    
+                    <div style="background: linear-gradient(135deg, var(--primary), #38bdf8); padding: 1.5rem; border-radius: var(--radius-md); color: white; margin-bottom: 1rem; box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);">
+                        <p style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 0.25rem;">Balance Disponible</p>
+                        <h2 id="statNetBalance" style="font-size: 2rem; margin: 0;">$0.00</h2>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.5rem;">
+                        <div style="background: var(--bg-card); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid rgba(0,0,0,0.02); box-shadow: var(--shadow-card);">
+                            <div style="display: flex; align-items: center; gap: 0.4rem; color: var(--success); margin-bottom: 0.4rem; font-size: 0.75rem; font-weight: 600;">
+                                <i class="ph-bold ph-trend-up"></i> INGRESOS
+                            </div>
+                            <h3 id="statTotalIncome" style="font-size: 1.3rem; color: var(--text-dark);">$0.00</h3>
+                        </div>
+                        <div style="background: var(--bg-card); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid rgba(0,0,0,0.02); box-shadow: var(--shadow-card);">
+                            <div style="display: flex; align-items: center; gap: 0.4rem; color: var(--danger); margin-bottom: 0.4rem; font-size: 0.75rem; font-weight: 600;">
+                                <i class="ph-bold ph-trend-down"></i> GASTOS
+                            </div>
+                            <h3 id="statTotalExpense" style="font-size: 1.3rem; color: var(--text-dark);">$0.00</h3>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-bottom: 1.5rem;">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="ph ph-chart-bar"></i>
+                                <span>Flujo de Dinero</span>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper bar-chart" style="height: 180px;">
+                            <canvas id="statsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-bottom: 1.5rem;">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="ph ph-chart-pie-slice"></i>
+                                <span>¿En qué gastas? (Categorías)</span>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper" style="height: 220px; position: relative;">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                        <div id="categoryLegend" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.85rem;">
+                            <!-- Injected via JS -->
+                        </div>
+                    </div>
+
+                    <div class="card list-card mt-3">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="ph ph-fire" style="color: #f97316;"></i>
+                                <span>Mayores Gastos</span>
+                            </div>
+                        </div>
+                        <div class="transaction-list" id="fullTransactionList">
+                            <!-- JS will inject items here -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= VIEW: AHORROS / OBJETIVOS ================= -->
+                <section id="view-savings" class="view-section">
+                    <header class="page-header">
+                        <h1>Objetivos</h1>
+                        <button class="btn-primary" onclick="openGoalModal()">
+                            <i class="ph ph-plus"></i> Meta
+                        </button>
+                    </header>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="ph ph-target"></i>
+                                <span>Mis Metas de Ahorro</span>
+                            </div>
+                        </div>
+                        <div class="goals-list" id="goalsList">
+                            <!-- Goals injected via JS -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= VIEW: PERFIL ================= -->
+                <section id="view-profile" class="view-section">
+                    <header class="page-header" style="margin-bottom: 1.5rem;">
+                        <h1>Perfil</h1>
+                    </header>
+
+                    <div class="profile-header card" style="padding: 2.5rem 1rem !important; margin-bottom: 1.5rem;">
+                        <div class="profile-avatar">
+                            <i class="ph-fill ph-user"></i>
+                        </div>
+                        <h2>Alex Dev</h2>
+                        <p class="badge-text" style="margin-top: 0.25rem;">Usuario Premium</p>
+                    </div>
+
+                    <div class="card list-card" style="margin-bottom: 1.5rem;">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="ph ph-sliders"></i>
+                                <span>Ajustes de la Aplicación</span>
+                            </div>
+                        </div>
+                        <div class="transaction-list">
+                            <div class="transaction-item profile-item">
+                                <div class="t-info">
+                                    <div class="t-icon" style="background: rgba(139, 92, 246, 0.1); color: var(--primary);"><i class="ph ph-moon"></i></div>
+                                    <h4 style="font-weight: 600;">Modo Oscuro</h4>
+                                </div>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode(this.checked)">
+                                    <label for="darkModeToggle"></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card list-card" style="margin-bottom: 1.5rem;">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="ph ph-database"></i>
+                                <span>Gestión de Datos</span>
+                            </div>
+                        </div>
+                        <div class="transaction-list">
+                            <div class="transaction-item profile-item" onclick="exportCSV()">
+                                <div class="t-info">
+                                    <div class="t-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success);"><i class="ph ph-file-csv"></i></div>
+                                    <div class="t-details">
+                                        <h4 style="font-weight: 600;">Exportar Reporte</h4>
+                                        <p style="font-size: 0.8rem; color: var(--text-muted);">Descargar historial en Excel</p>
+                                    </div>
+                                </div>
+                                <i class="ph ph-download-simple" style="color: var(--text-muted);"></i>
+                            </div>
+                            <div class="transaction-item profile-item" onclick="exportBackup()">
+                                <div class="t-info">
+                                    <div class="t-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;"><i class="ph ph-cloud-arrow-down"></i></div>
+                                    <div class="t-details">
+                                        <h4 style="font-weight: 600;">Crear Respaldo</h4>
+                                        <p style="font-size: 0.8rem; color: var(--text-muted);">Descargar base de datos (.json)</p>
+                                    </div>
+                                </div>
+                                <i class="ph ph-download-simple" style="color: var(--text-muted);"></i>
+                            </div>
+                            <div class="transaction-item profile-item" onclick="document.getElementById('importFile').click()">
+                                <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importBackup(event)">
+                                <div class="t-info">
+                                    <div class="t-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;"><i class="ph ph-cloud-arrow-up"></i></div>
+                                    <div class="t-details">
+                                        <h4 style="font-weight: 600;">Restaurar Respaldo</h4>
+                                        <p style="font-size: 0.8rem; color: var(--text-muted);">Cargar base de datos anterior</p>
+                                    </div>
+                                </div>
+                                <i class="ph ph-upload-simple" style="color: var(--text-muted);"></i>
+                            </div>
+                            <div class="transaction-item profile-item" onclick="wipeData()">
+                                <div class="t-info">
+                                    <div class="t-icon" style="background: rgba(239, 68, 68, 0.1); color: var(--danger);"><i class="ph ph-trash"></i></div>
+                                    <div class="t-details">
+                                        <h4 style="font-weight: 600; color: var(--danger);">Borrar Todos los Datos</h4>
+                                    </div>
+                                </div>
+                                <i class="ph ph-caret-right" style="color: var(--text-muted);"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card list-card">
+                        <div class="transaction-list">
+                            <div class="transaction-item profile-item" onclick="logout()">
+                                <div class="t-info">
+                                    <div class="t-icon" style="color:var(--danger); background:var(--danger-bg);"><i class="ph ph-sign-out"></i></div>
+                                    <h4 style="color:var(--danger); font-weight: 600;">Cerrar Sesión</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+
+        <!-- Bottom Navigation Bar -->
+        <div class="bottom-nav">
+            <a href="#" class="nav-item active" data-target="view-dashboard"><i class="ph-fill ph-house"></i></a>
+            <a href="#" class="nav-item" data-target="view-stats"><i class="ph ph-chart-bar"></i></a>
+            <a href="#" class="nav-item add-action" id="fabBtn" onclick="openTransactionModal()"><i class="ph ph-plus"></i></a>
+            <a href="#" class="nav-item" data-target="view-savings"><i class="ph ph-piggy-bank"></i></a>
+            <a href="#" class="nav-item" data-target="view-profile"><i class="ph ph-user"></i></a>
+        </div>
+    </div>
+
+    <!-- Modal Form (Transacción) -->
+    <div class="modal-overlay" id="transactionModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Nueva Transacción</h3>
+                <button class="close-btn" onclick="closeModals()"><i class="ph ph-x"></i></button>
+            </div>
+            <form id="transactionForm">
+                <input type="hidden" id="editTransactionId">
+                <div class="type-toggle">
+                    <input type="radio" id="typeIncome" name="type" value="income" checked>
+                    <label for="typeIncome">Ingreso</label>
+
+                    <input type="radio" id="typeExpense" name="type" value="expense">
+                    <label for="typeExpense">Gasto</label>
+                </div>
+                
+                <div class="form-group">
+                    <label>Cuenta / Moneda</label>
+                    <select id="txAccount" class="filter-select" style="width:100%; height:45px;">
+                        <option value="ves">Bolívares (Bs)</option>
+                        <option value="usdt">Dólares USDT</option>
+                        <option value="usd">Dólares Físicos</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="categoryGroup" style="display: none;">
+                    <label>Categoría</label>
+                    <select id="txCategory" class="filter-select" style="width: 100%; height: 45px;">
+                        <option value="Mercado">🛒 Mercado</option>
+                        <option value="Transporte">🚗 Transporte / Gasolina</option>
+                        <option value="Servicios">⚡ Servicios (Luz, Internet, etc)</option>
+                        <option value="Salud">💊 Salud / Farmacia</option>
+                        <option value="Gusticos">🍔 Gusticos / Salidas</option>
+                        <option value="Transferencias">💸 Pago Móvil / Zelle</option>
+                        <option value="Educación">📚 Educación</option>
+                        <option value="Otros">📦 Otros</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <input type="text" id="description" placeholder="Ej. Salario, Comida..." required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Monto</label>
+                    <div class="amount-input">
+                        <span class="currency" id="txCurrencySymbol">Bs</span>
+                        <input type="number" id="amount" placeholder="0.00" step="0.01" min="0.01" required>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-primary full-width" style="padding: 1rem; justify-content: center;">Guardar Transacción</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Form (Meta de Ahorro) -->
+    <div class="modal-overlay" id="goalModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Nuevo Objetivo</h3>
+                <button class="close-btn" onclick="closeModals()"><i class="ph ph-x"></i></button>
+            </div>
+            <form id="goalForm">
+                <div class="form-group">
+                    <label>Nombre del Objetivo</label>
+                    <input type="text" id="goalName" placeholder="Ej. Laptop Nueva, Celular..." required>
+                </div>
+                <div class="form-group">
+                    <label>Emoji (Ícono)</label>
+                    <input type="text" id="goalEmoji" placeholder="Ej. 💻, ✈️, 🚗" maxlength="2" required style="font-size: 1.5rem; text-align: center; height: 50px;">
+                </div>
+                <div class="form-group">
+                    <label>Monto Meta (USDT/USD)</label>
+                    <div class="amount-input">
+                        <span class="currency">$</span>
+                        <input type="number" id="goalAmount" placeholder="0.00" step="1" min="1" required>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 1rem;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Inicio</label>
+                        <input type="date" id="goalStartDate" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-family: var(--font-family);">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Límite</label>
+                        <input type="date" id="goalEndDate" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-family: var(--font-family);">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Frecuencia de Abono</label>
+                    <select id="goalFrequency" class="filter-select" style="width: 100%; height: 45px;">
+                        <option value="semanal">Semanal</option>
+                        <option value="quincenal">Quincenal</option>
+                        <option value="mensual">Mensual</option>
+                    </select>
+                </div>
+
+                <div id="goalCalculation" style="background: var(--bg-main); padding: 1rem; border-radius: 12px; margin-bottom: 1.25rem; display: none; text-align: center; border: 1px dashed var(--primary-light);">
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.25rem;">Debes ahorrar aproximadamente:</p>
+                    <h3 id="goalSuggestedAmount" style="color: var(--primary); font-size: 1.2rem;">$0.00</h3>
+                </div>
+
+                <button type="submit" class="btn-primary full-width" style="padding: 1rem; justify-content: center;">Crear Meta</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Form (Abonar a Meta) -->
+    <div class="modal-overlay" id="addFundModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Abonar al Objetivo</h3>
+                <button class="close-btn" onclick="closeModals()"><i class="ph ph-x"></i></button>
+            </div>
+            <form id="addFundForm">
+                <input type="hidden" id="fundGoalId">
+                <div class="form-group">
+                    <label>¿De dónde sale el dinero?</label>
+                    <select id="fundAccount" class="filter-select" style="width:100%; height:45px;">
+                        <option value="ves">Bolívares (Bs)</option>
+                        <option value="usdt">Dólares USDT</option>
+                        <option value="usd">Dólares Físicos ($)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Monto a sumar ($)</label>
+                    <div class="amount-input">
+                        <span class="currency">$</span>
+                        <input type="number" id="fundAmount" placeholder="0.00" step="1" min="1" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary full-width" style="padding: 1rem; justify-content: center;">Abonar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Form (Detalles de Meta) -->
+    <div class="modal-overlay" id="goalDetailsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Detalles de la Meta</h3>
+                <button class="close-btn" onclick="closeModals()"><i class="ph ph-x"></i></button>
+            </div>
+            <div id="goalDetailsContent">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Custom Confirm Alert -->
+    <div class="modal-overlay" id="confirmModal" style="z-index: 2000; align-items: center;">
+        <div class="alert-modal-box">
+            <div style="width: 60px; height: 60px; background: var(--danger-bg); color: var(--danger); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1.5rem auto;">
+                <i class="ph-fill ph-warning-circle"></i>
+            </div>
+            <h3 style="margin-bottom: 0.5rem; font-size: 1.25rem;">Confirmación</h3>
+            <p id="confirmMessage" style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem; line-height: 1.5;">¿Estás seguro?</p>
+            
+            <div style="display: flex; gap: 1rem;">
+                <button class="btn-primary" style="flex: 1; justify-content: center; background: var(--bg-main); color: var(--text-dark); border: none; box-shadow: none;" onclick="closeConfirmModal()">Cancelar</button>
+                <button class="btn-primary" style="flex: 1; justify-content: center; background: var(--danger); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);" onclick="handleConfirmYes()">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
