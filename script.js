@@ -181,6 +181,9 @@ function init() {
 }
 
 window.logout = function() {
+    transactions = [];
+    goals = [];
+    updateUI();
     signOut(auth);
 };
 
